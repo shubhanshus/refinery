@@ -193,6 +193,8 @@ type Config interface {
 	GetTraceIdFieldNames() []string
 
 	GetParentIdFieldNames() []string
+
+	GetDisableHoneycombAPI() bool
 }
 
 type ConfigMetadata struct {

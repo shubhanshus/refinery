@@ -34,8 +34,9 @@ type configContents struct {
 	PeerListenAddr            string `validate:"required"`
 	CompressPeerCommunication bool
 	GRPCListenAddr            string
-	APIKeys                   []string      `validate:"required"`
-	HoneycombAPI              string        `validate:"required,url"`
+	APIKeys                   []string `validate:"required"`
+	HoneycombAPI              string   `validate:"required,url"`
+	DisableHoneycombAPI       bool
 	Logger                    string        `validate:"required,oneof= logrus honeycomb"`
 	LoggingLevel              string        `validate:"required"`
 	Collector                 string        `validate:"required,oneof= InMemCollector"`
@@ -65,8 +66,8 @@ type configContents struct {
 	SampleCache               SampleCacheConfig  `validate:"required"`
 	StressRelief              StressReliefConfig `validate:"required"`
 	AdditionalAttributes      map[string]string
-	TraceIdFieldNames				  []string
-	ParentIdFieldNames				[]string
+	TraceIdFieldNames         []string
+	ParentIdFieldNames        []string
 }
 
 type InMemoryCollectorCacheCapacity struct {
@@ -165,6 +166,7 @@ func NewConfig(config, rules string, errorCallback func(error)) (Config, error) 
 	c.SetDefault("PeerManagement.Timeout", 5*time.Second)
 	c.SetDefault("PeerManagement.Strategy", "legacy")
 	c.SetDefault("HoneycombAPI", "https://api.honeycomb.io")
+	c.SetDefault("DisableHoneycombAPI", false)
 	c.SetDefault("Logger", "logrus")
 	c.SetDefault("LoggingLevel", "debug")
 	c.SetDefault("Collector", "InMemCollector")
@@ -1000,6 +1002,13 @@ func (f *fileConfig) GetParentIdFieldNames() []string {
 	defer f.mux.RUnlock()
 
 	return f.conf.ParentIdFieldNames
+}
+
+func (f *fileConfig) GetDisableHoneycombAPI() bool {
+	f.mux.RLock()
+	defer f.mux.RUnlock()
+
+	return f.conf.DisableHoneycombAPI
 }
 
 // calculates an MD5 sum for a file that returns the same result as the md5sum command

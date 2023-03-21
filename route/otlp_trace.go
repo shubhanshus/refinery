@@ -22,14 +22,22 @@ func (r *Router) postOTLP(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	result, err := huskyotlp.TranslateTraceRequestFromReader(req.Body, ri)
-	if err != nil {
-		r.handlerReturnWithError(w, ErrUpstreamFailed, err)
-		return
-	}
+	disableHC := DisableHoneyComb(r)
 
-	if err := processTraceRequest(req.Context(), r, result.Batches, ri.ApiKey); err != nil {
-		r.handlerReturnWithError(w, ErrUpstreamFailed, err)
+	if disableHC {
+		r.Logger.Info().Logf("HoneyComb API is disabled")
+
+	} else {
+		result, err := huskyotlp.TranslateTraceRequestFromReader(req.Body, ri)
+		if err != nil {
+			r.handlerReturnWithError(w, ErrUpstreamFailed, err)
+			return
+		}
+
+		if err := processTraceRequest(req.Context(), r, result.Batches, ri.ApiKey); err != nil {
+			r.handlerReturnWithError(w, ErrUpstreamFailed, err)
+		}
+
 	}
 }
 
@@ -59,6 +67,11 @@ func (t *TraceServer) Export(ctx context.Context, req *collectortrace.ExportTrac
 	}
 
 	return &collectortrace.ExportTraceServiceResponse{}, nil
+}
+
+func DisableHoneyComb(router *Router) bool {
+	disableHC := router.Config.GetDisableHoneycombAPI()
+	return disableHC
 }
 
 func processTraceRequest(

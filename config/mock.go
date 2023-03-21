@@ -91,8 +91,8 @@ type MockConfig struct {
 	SampleCache                   SampleCacheConfig
 	StressRelief                  StressReliefConfig
 	AdditionalAttributes          map[string]string
-	TraceIdFieldNames				  		[]string
-	ParentIdFieldNames						[]string
+	TraceIdFieldNames             []string
+	ParentIdFieldNames            []string
 	CfgMetadata                   []ConfigMetadata
 
 	Mux sync.RWMutex
@@ -537,4 +537,11 @@ func (f *MockConfig) GetAdditionalAttributes() map[string]string {
 	defer f.Mux.RUnlock()
 
 	return f.AdditionalAttributes
+}
+
+func (m *MockConfig) GetDisableHoneycombAPI() bool {
+	m.Mux.RLock()
+	defer m.Mux.RUnlock()
+
+	return m.DryRun
 }
